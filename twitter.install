@@ -1,0 +1,302 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Twitter module.
+ */
+
+/**
+ * Implements hook_schema().
+ *
+ * Defines the database tables used by this module.
+ *
+ * @see hook_schema()
+ * @ingroup dbtng_example
+ */
+function twitter_schema() {
+  $schema['twitter_status'] = array(
+    'description' => 'Stores Twitter statuses.',
+    'fields' => array(
+      'twitter_id' => array(
+        'description' => 'Unique identifier for each Twitter status.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'big',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'screen_name' => array(
+        'description' => "Screen Name of the {twitter_account} user.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created_at' => array(
+        'description' => "Date and time the status was created.",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created_time' => array(
+        'description' => "Duplicates {twitter}.created_at as a UNIX timestamp.",
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'text' => array(
+        'description' => "The text of the status.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'source' => array(
+        'description' => "Application used to submit the status.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'in_reply_to_status_id' => array(
+        'description' => "Unique identifier of a status this status was replying to.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'big',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'in_reply_to_user_id' => array(
+        'description' => "Unique identifier for the {twitter_account} this status was replying to.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'big',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'in_reply_to_screen_name' => array(
+        'description' => "Screen name of the {twitter} user this status was replying to.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'truncated' => array(
+        'description' => "Boolean flag indicating whether the {twitter} status was cut off to fit in the 140 character limit.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'entities' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of {twitter} status entities.',
+      ),
+    ),
+    'primary key' => array('twitter_id'),
+    'indexes' => array(
+      'screen_name' => array('screen_name'),
+    ),
+  );
+
+  $schema['twitter_account'] = array(
+    'description' => "Stores information on specific Twitter user accounts.",
+    'fields' => array(
+      'twitter_uid' => array(
+        'description' => "The unique identifier of the account.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'big',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'host' => array(
+        'description' => 'The host for this account can be a laconi.ca instance',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'screen_name' => array(
+        'description' => "The unique login name of the account user.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'oauth_token' => array(
+        'description' => 'The token_key for oauth-based access.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+      'oauth_token_secret' => array(
+        'description' => 'The token_secret for oauth-based access.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+      'name' => array(
+        'description' => "The full name of the account user.",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'description' => array(
+        'description' => "The description/biography associated with the account.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'location' => array(
+        'description' => "The location of the account's owner.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'followers_count' => array(
+        'description' => "The number of users following this account.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'friends_count' => array(
+        'description' => "The number of users this account is following.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'statuses_count' => array(
+        'description' => "The total number of status updates performed by a user, excluding direct messages sent.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'favourites_count' => array(
+        'description' => "The  number of statuses a user has marked as favorite.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'url' => array(
+        'description' => "The url of the account's home page.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'profile_image_url' => array(
+        'description' => "The url of the account's profile image.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'protected' => array(
+        'description' => "Boolean flag indicating whether the account's statuses are publicly accessible.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'profile_background_color' => array(
+        'description' => "hex RGB value for a user's background color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_text_color' => array(
+        'description' => "hex RGB value for a user's text color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_link_color' => array(
+        'description' => "hex RGB value for a user's link color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_sidebar_fill_color' => array(
+        'description' => "hex RGB value for a user's sidebar color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_sidebar_border_color' => array(
+        'description' => "hex RGB value for a user's border color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_background_image_url' => array(
+        'description' => "The url of the account's profile image.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'profile_background_tile' => array(
+        'description' => "Boolean indicating if a user's background is tiled.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'verified' => array(
+        'description' => "Indicates if a user is a Twitter verified user.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created_at' => array(
+        'description' => "Date and time the account was created.",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created_time' => array(
+        'description' => "A duplicate of account.created_at in UNIX timestamp format.",
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'utc_offset' => array(
+        'description' => "The user's timezone stored as UTC offset",
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'import' => array(
+        'description' => "Boolean flag indicating whether the account's statuses should be pulled in by the site.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'mentions' => array(
+        'description' => "Boolean flag indicating whether the account's mentions should be pulled in by the site.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'last_refresh' => array(
+        'description' => "A UNIX timestamp marking the date Twitter statuses were last fetched on.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'is_global' => array(
+        'description' => "Boolean flag indicating if this account is available for global use.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => "The uid of the Drupal user associated with this Twitter account.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array('screen_name' => array('screen_name')),
+    'primary key' => array('twitter_uid'),
+  );
+
+  return $schema;
+}

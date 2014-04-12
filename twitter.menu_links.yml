@@ -1,5 +1,12 @@
-twitter.settings:
-  title: 'Twitter Settings'
+twitter.account.list:
+  title: 'Twitter Accounts'
   parent: system.admin_config_services
+  description: 'Manage Twitter accounts.'
+  route_name: twitter.account.list
+  weight: 10
+twitter.accounts.settings:
+  title: 'Twitter Settings'
+  parent: twitter.account.list
   description: 'Configure integration with Twitter API services.'
-  route_name: twitter.settings
+  route_name: twitter.account.settings
+  weight: 20
